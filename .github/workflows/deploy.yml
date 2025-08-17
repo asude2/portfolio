@@ -1,18 +1,16 @@
-# İş akışının adı
+# deploy.yml
+
 name: Deploy Vue app to GitHub Pages
 
-# main branch'ine her kod gönderildiğinde bu otomasyonu tetikle
 on:
   push:
     branches: ["main"]
 
-# İş akışının çalışması için gerekli izinler
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Aynı anda sadece bir deployment yapılmasına izin ver
 concurrency:
   group: "pages"
   cancel-in-progress: true
@@ -24,36 +22,27 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      # 1. Kodu GitHub sunucusuna indir
       - name: Checkout
         uses: actions/checkout@v4
-
-      # 2. Node.js'i kur
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'npm'
-
-      # 3. Proje bağımlılıklarını (dependencies) yükle
       - name: Install dependencies
         run: npm install
-
-      # 4. Projeyi derle (build et), yani 'dist' klasörünü oluştur
+        
       - name: Build
         run: npm run build
-
-      # 5. GitHub Pages için altyapıyı hazırla
+        env:
+          NODE_OPTIONS: "--openssl-legacy-provider"
+          
       - name: Setup Pages
         uses: actions/configure-pages@v4
-
-      # 6. Derlenen 'dist' klasörünü GitHub'a yükle
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
-
-      # 7. Yüklenen dosyaları GitHub Pages'de yayınla
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
